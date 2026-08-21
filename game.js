@@ -869,14 +869,14 @@ function updatePipes(dt) {
 }
 
 // ── Enemy Birds ──────────────────────────────────────────────
-// Hostile birds: spawn once score >= 20, up to floor(score/20) alive
+// Hostile birds: spawn once score >= 15, up to floor(score/15) alive
 // (max 4). They fly through pipes (view-only) and kill on touch.
 // Types unlock by score; each has its own sprite, size, speed and radius.
 const ENEMY_TYPES = {
-  red:    { sprite: 'enemyRed',    size: 34, speed: 1,   radius: 12, minScore: 20, weight: 40 },
-  yellow: { sprite: 'enemyYellow', size: 28, speed: 1.7, radius: 10, minScore: 40, weight: 30 },
-  black:  { sprite: 'enemyBlack',  size: 34, speed: 1,   radius: 12, minScore: 60, weight: 20 },
-  bigred: { sprite: 'enemyBigRed', size: 85, speed: 1,   radius: 30, minScore: 80, weight: 10 },
+  red:    { sprite: 'enemyRed',    size: 34, speed: 1,   radius: 12, minScore: 15, weight: 40 },
+  yellow: { sprite: 'enemyYellow', size: 28, speed: 2.2, radius: 10, minScore: 25, weight: 30 },
+  black:  { sprite: 'enemyBlack',  size: 34, speed: 1,   radius: 12, minScore: 35, weight: 20 },
+  bigred: { sprite: 'enemyBigRed', size: 85, speed: 1,   radius: 30, minScore: 50, weight: 10 },
 };
 
 let enemies = [];
@@ -892,6 +892,7 @@ function resetEnemies() {
 function spawnEnemy() {
   // weighted pick among types whose minScore is reached
   const pool = Object.keys(ENEMY_TYPES).filter(t => score >= ENEMY_TYPES[t].minScore);
+  if (!pool.length) return; // ponytail: no eligible type yet
   let total = 0;
   for (const t of pool) total += ENEMY_TYPES[t].weight;
   let roll = Math.random() * total;
