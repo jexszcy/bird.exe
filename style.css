@@ -46,6 +46,8 @@ body {
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
   min-width: 320px;
   max-width: 90vw;
+  max-height: 95vh;
+  overflow-y: auto;
 }
 
 .title {
@@ -458,6 +460,15 @@ body {
   border-bottom: none;
   color: #ffd700;
   font-weight: 700;
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .screen-content {
+    padding-bottom: max(40px, calc(40px + env(safe-area-inset-bottom)));
+  }
+  .screen-content.shop-content {
+    padding-bottom: max(40px, calc(40px + env(safe-area-inset-bottom)));
+  }
 }
 
 @media (max-width: 480px) {

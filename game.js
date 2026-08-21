@@ -774,15 +774,20 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 function resize() {
-  canvas.width = window.innerWidth * devicePixelRatio;
-  canvas.height = window.innerHeight * devicePixelRatio;
+  const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+  canvas.width = vw * devicePixelRatio;
+  canvas.height = vh * devicePixelRatio;
   ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
 }
 window.addEventListener('resize', resize);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', resize);
+}
 resize();
 
-const W = () => window.innerWidth;
-const H = () => window.innerHeight;
+const W = () => window.visualViewport ? window.visualViewport.width : window.innerWidth;
+const H = () => window.visualViewport ? window.visualViewport.height : window.innerHeight;
 
 // ── Bird State ───────────────────────────────────────────────
 const GRAVITY = 0.45;
@@ -1555,9 +1560,9 @@ function updateGame(timestamp) {
     drawSpriteTo(ctx, bird, -BIRD_W / 2, -BIRD_H / 2, BIRD_W, BIRD_H);
     ctx.restore();
   } else {
-    // bird physics
-    birdVel += GRAVITY;
-    birdY += birdVel;
+    // bird physics (dt-scaled to match 60fps baseline like pipes/ground)
+    birdVel += GRAVITY * dt * 60;
+    birdY += birdVel * dt * 60;
 
     // bird rotation
     if (birdVel < 0) birdRot = Math.max(-0.5, birdVel * 0.06);
