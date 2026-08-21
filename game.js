@@ -14,6 +14,11 @@ const storage = {
   sEquipped: () => storage.get('flappy-scenery-equipped', 'classic'),
   saveSOwned(v) { storage.set('flappy-scenery-owned', v); },
   saveSEquipped(v) { storage.set('flappy-scenery-equipped', v); },
+  clearAll() {
+    ['flappy-coins', 'flappy-best', 'flappy-owned', 'flappy-equipped',
+     'flappy-scenery-owned', 'flappy-scenery-equipped', 'flappy-pending'
+    ].forEach(function (k) { localStorage.removeItem(k); });
+  },
 };
 
 // ── Bird Definitions ─────────────────────────────────────────
@@ -778,6 +783,8 @@ function resize() {
   const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
   canvas.width = vw * devicePixelRatio;
   canvas.height = vh * devicePixelRatio;
+  canvas.style.width = vw + 'px';
+  canvas.style.height = vh + 'px';
   ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
 }
 window.addEventListener('resize', resize);
@@ -907,16 +914,20 @@ function spawnEnemy() {
 }
 
 function updateEnemies(dt) {
-  const maxAlive = Math.min(4, Math.floor(score / 20));
-  if (score >= 20 && enemies.length < maxAlive) {
+  const maxAlive = Math.min(6, Math.floor(score / 15));
+  if (score >= 15 && enemies.length < maxAlive) {
     enemyTimer -= dt;
     if (enemyTimer <= 0) {
       spawnEnemy();
-      enemyTimer = 4 + Math.random() * 3;
+      const baseTimer = 2.5 + Math.random() * 2;
+      const accel = Math.max(0.5, 1 - score * 0.005);
+      enemyTimer = baseTimer * accel;
     }
-  } else if (score >= 20) {
+  } else if (score >= 15) {
     // cap full: keep timer fresh so it doesn't resume stale when a slot frees
-    enemyTimer = 4 + Math.random() * 3;
+    const baseTimer = 2.5 + Math.random() * 2;
+    const accel = Math.max(0.5, 1 - score * 0.005);
+    enemyTimer = baseTimer * accel;
   }
   for (const e of enemies) {
     e.x -= (PIPE_SPEED * 60 * speedMult() * 0.9 + 30) * e.speed * dt;
@@ -1908,7 +1919,7 @@ const lbBody = document.getElementById('lbBody');
 
 async function loadLeaderboard() {
   lbBody.textContent = 'Loading…';
-  if (!window.Sync) { lbBody.textContent = 'Offline'; return; }
+  if (!window.Sync) { lbBody.textContent = 'Sign in to see the leaderboard'; return; }
   try {
     const res = await window.Sync.fetchLeaderboard();
     const rows = (res.list || []).slice(0, 10);
@@ -1931,8 +1942,14 @@ async function loadLeaderboard() {
       row.appendChild(score);
       lbBody.appendChild(row);
     });
+    if (!res.currentUserId) {
+      const hint = document.createElement('div');
+      hint.style.cssText = 'text-align:center;color:#a5b4fc;font-size:0.8rem;margin-top:10px;';
+      hint.textContent = 'Log in to compete!';
+      lbBody.appendChild(hint);
+    }
   } catch (e) {
-    lbBody.textContent = 'Could not load scores. Check your connection.';
+    lbBody.textContent = 'Sign in to see the leaderboard';
   }
 }
 

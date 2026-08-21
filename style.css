@@ -22,8 +22,8 @@ body {
 
 #gameCanvas {
   display: block;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
 }
 
 .screen {
@@ -431,6 +431,42 @@ body {
   font-size: 0.8rem;
   min-height: 1em;
   margin-top: 2px;
+}
+
+/* Logged-in user display */
+.user-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.user-email {
+  color: #ffd700;
+  font-size: 0.9em;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-logout {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8em;
+}
+
+.btn-logout:hover {
+  background: rgba(239, 68, 68, 0.4);
 }
 
 /* Game Over */

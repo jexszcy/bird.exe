@@ -37,11 +37,19 @@
         s === 'syncing' ? '☁ syncing…' :
         (userEmail ? '☁ signed in as ' + userEmail : '☁ synced');
     }
-    var box = $('authBox'), so = $('btnSignOut');
+    var box = $('authBox'), so = $('btnSignOut'), ub = $('userBox'), ue = $('userEmail');
     if (!box) return;
-    if (s === 'offline') { box.style.display = 'none'; if (so) so.style.display = 'none'; }
-    else if (s === 'signedout') { box.style.display = 'block'; if (so) so.style.display = 'none'; }
-    else { box.style.display = 'none'; if (so) so.style.display = 'block'; }
+    if (s === 'offline') {
+      box.style.display = 'none'; if (so) so.style.display = 'none';
+      if (ub) ub.style.display = 'none';
+    } else if (s === 'signedout') {
+      box.style.display = 'block'; if (so) so.style.display = 'none';
+      if (ub) ub.style.display = 'none';
+    } else {
+      box.style.display = 'none'; if (so) so.style.display = 'none';
+      if (ub) ub.style.display = 'block';
+      if (ue) ue.textContent = userEmail || '';
+    }
   }
 
   // ── Offline queue ─────────────────────────────────────────────
@@ -122,6 +130,12 @@
   }
 
   async function logout() {
+    // Clear all local game data to prevent stale data on next login
+    ['flappy-coins', 'flappy-best', 'flappy-owned', 'flappy-equipped',
+     'flappy-scenery-owned', 'flappy-scenery-equipped', 'flappy-pending'
+    ].forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+    pending = [];
+    userEmail = null;
     var err = await client.auth.signOut();
     if (err.error) throw new Error('Sign out failed');
   }
@@ -198,7 +212,15 @@
     }
     client.auth.onAuthStateChange(function (event) {
       if (event === 'SIGNED_IN') { restore(); flush(); }
-      if (event === 'SIGNED_OUT') { userEmail = null; setStatus('signedout'); }
+      if (event === 'SIGNED_OUT') {
+        // Clear all local game data to prevent stale data on next login
+        ['flappy-coins', 'flappy-best', 'flappy-owned', 'flappy-equipped',
+         'flappy-scenery-owned', 'flappy-scenery-equipped', 'flappy-pending'
+        ].forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} });
+        pending = [];
+        userEmail = null;
+        setStatus('signedout');
+      }
     });
     window.addEventListener('online', flush);
   }
@@ -256,6 +278,8 @@
     };
     var so = $('btnSignOut');
     if (so) so.onclick = function () { Sync.logout(); };
+    var lo = $('btnLogout');
+    if (lo) lo.onclick = function () { Sync.logout(); };
   }
 
   window.Sync = {
