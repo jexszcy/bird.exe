@@ -1,0 +1,475 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #1a1a2e;
+  overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Custom scrollbar (dark/gold theme) */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #0f172a; border-radius: 5px; }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #ffd700, #d97706); border-radius: 5px; border: 2px solid #0f172a; }
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #fef08a, #f59e0b); }
+* { scrollbar-width: thin; scrollbar-color: #ffd700 #0f172a; }
+
+#gameCanvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+.screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.screen-content {
+  text-align: center;
+  background: rgba(15, 15, 35, 0.92);
+  border-radius: 20px;
+  padding: 40px 50px;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+  min-width: 320px;
+  max-width: 90vw;
+}
+
+.title {
+  font-size: 3rem;
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.title-bird {
+  width: 52px;
+  height: 36px;
+}
+
+#birdPreview {
+  display: block;
+  margin: 0;
+}
+
+#sceneryPreview {
+  display: block;
+  margin: 0;
+  border-radius: 8px;
+}
+
+.selector-label {
+  color: #a5b4fc;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin: -8px 0 14px;
+}
+
+.bird-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.btn-arrow {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #ffd700;
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-arrow:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.coin-display {
+  font-size: 1.4rem;
+  color: #ffd700;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.coin-display canvas {
+  vertical-align: middle;
+  width: 24px;
+  height: 24px;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 14px 24px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.2s;
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.btn-play {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  color: #fff;
+}
+
+.btn-shop {
+  background: linear-gradient(135deg, #818cf8, #6366f1);
+  color: #fff;
+}
+
+.btn-back {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ccc;
+  width: auto;
+  padding: 10px 20px;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-scores {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1a1a2e;
+}
+
+/* Selector hint (only-1-owned cycle feedback) */
+.selector-hint {
+  color: #fbbf24;
+  font-size: 0.8rem;
+  min-height: 1em;
+  margin: -6px 0 10px;
+  opacity: 0;
+  transition: opacity 0.25s ease-in;
+}
+
+.selector-hint.show {
+  opacity: 1;
+  transition: opacity 0.25s ease-out;
+}
+
+/* Leaderboard modal */
+.lb-backdrop {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.lb-modal {
+  background: rgba(15, 15, 35, 0.97);
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  border-radius: 16px;
+  padding: 20px 24px;
+  min-width: 300px;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+}
+
+.lb-modal .lb-title {
+  text-align: center;
+}
+
+.lb-modal .lb-body {
+  overflow-y: auto;
+  max-height: 40vh;
+}
+
+.lb-title {
+  color: #ffd700;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.lb-body {
+  color: #ddd;
+  font-size: 0.9rem;
+  min-height: 1em;
+}
+
+.lb-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lb-row:last-child {
+  border-bottom: none;
+}
+
+.lb-rank {
+  color: #a5b4fc;
+  min-width: 30px;
+  text-align: left;
+}
+
+.lb-name {
+  flex: 1;
+  text-align: left;
+}
+
+.lb-score {
+  color: #ffd700;
+  font-weight: 600;
+}
+
+.lb-you .lb-name {
+  color: #4ade80;
+  font-weight: 700;
+}
+
+/* Shop */
+.shop-content {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.shop-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.shop-title {
+  font-size: 2rem;
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+.shop-section-title {
+  font-size: 1.3rem;
+  color: #a5b4fc;
+  margin: 24px 0 12px;
+  text-align: left;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+  max-width: 640px;
+}
+
+.shop-card {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.shop-card.equipped {
+  border-color: #4ade80;
+}
+
+.shop-card canvas {
+  border-radius: 8px;
+}
+
+.shop-card .bird-name {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.shop-card .bird-price {
+  color: #ffd700;
+  font-size: 0.85rem;
+}
+
+.btn-buy {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: #1a1a2e;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  border-radius: 8px;
+}
+
+.btn-equip {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  color: #fff;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  border-radius: 8px;
+}
+
+.btn-equipped {
+  background: rgba(74, 222, 128, 0.2);
+  color: #4ade80;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  cursor: default;
+}
+
+/* Auth / Sync */
+#authBox {
+  margin: 0 auto 16px;
+  padding: 14px 16px 10px;
+  max-width: 300px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  border-radius: 12px;
+}
+
+.sync-status {
+  font-size: 0.85rem;
+  color: #a5b4fc;
+  margin-bottom: 8px;
+}
+
+#authForm input {
+  display: block;
+  width: 100%;
+  margin: 6px 0;
+  padding: 9px 12px;
+  background: rgba(15, 15, 35, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.9rem;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+#authForm input::placeholder {
+  color: #888;
+}
+
+#authForm input:focus {
+  outline: none;
+  border-color: #ffd700;
+}
+
+.btn-auth {
+  background: linear-gradient(135deg, #ffd700, #f59e0b);
+  color: #1a1a2e;
+  padding: 10px;
+  font-size: 0.9rem;
+  margin: 8px 0 4px;
+}
+
+.btn-auth:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btn-signout {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ddd;
+  padding: 8px;
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+}
+
+.auth-toggle {
+  background: none;
+  border: none;
+  color: #a5b4fc;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 4px;
+  text-decoration: underline;
+}
+
+.auth-error {
+  color: #f87171;
+  font-size: 0.8rem;
+  min-height: 1em;
+  margin-top: 2px;
+}
+
+/* Game Over */
+.gameover-title {
+  font-size: 2.4rem;
+  color: #f87171;
+  margin-bottom: 16px;
+}
+
+.score-box {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 16px 24px;
+  margin-bottom: 20px;
+}
+
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  color: #ddd;
+  font-size: 1.1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.score-row:last-child {
+  border-bottom: none;
+  color: #ffd700;
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .screen-content {
+    padding: 28px 24px;
+    min-width: 260px;
+  }
+  .title {
+    font-size: 2.2rem;
+  }
+  .shop-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}

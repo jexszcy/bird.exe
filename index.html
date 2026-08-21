@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>bird.exe</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 70'%3E%3Cpath d='M24 44 L10 30 L30 46 Z' fill='%23f59e0b'/%3E%3Cpath d='M26 50 L12 48 L20 56 Z' fill='%23d97706'/%3E%3Cellipse cx='50' cy='40' rx='27' ry='23' fill='%23ffb703'/%3E%3Cellipse cx='43' cy='52' rx='16' ry='9' fill='%23fff7d6'/%3E%3Cellipse cx='38' cy='45' rx='12' ry='8' fill='%23f59e0b' transform='rotate(-20 38 45)'/%3E%3Ccircle cx='62' cy='23' r='6' fill='%23fff' stroke='%231e293b' stroke-width='1.2'/%3E%3Ccircle cx='63.5' cy='23.5' r='3' fill='%231e293b'/%3E%3Cpath d='M69 26 L96 42 L69 36 Z' fill='%23f97316'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#ffb703">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Start Screen -->
+  <div id="startScreen" class="screen">
+    <div class="screen-content">
+      <h1 class="title"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 70'%3E%3Cpath d='M24 44 L10 30 L30 46 Z' fill='%23f59e0b'/%3E%3Cpath d='M26 50 L12 48 L20 56 Z' fill='%23d97706'/%3E%3Cellipse cx='50' cy='40' rx='27' ry='23' fill='%23ffb703'/%3E%3Cellipse cx='43' cy='52' rx='16' ry='9' fill='%23fff7d6'/%3E%3Cellipse cx='38' cy='45' rx='12' ry='8' fill='%23f59e0b' transform='rotate(-20 38 45)'/%3E%3Ccircle cx='62' cy='23' r='6' fill='%23fff' stroke='%231e293b' stroke-width='1.2'/%3E%3Ccircle cx='63.5' cy='23.5' r='3' fill='%231e293b'/%3E%3Cpath d='M69 26 L96 42 L69 36 Z' fill='%23f97316'/%3E%3C/svg%3E" alt="" class="title-bird">bird.exe</h1>
+      <div class="bird-selector">
+        <button class="btn-arrow" id="btnPrevBird">◀</button>
+        <canvas id="birdPreview" width="120" height="90"></canvas>
+        <button class="btn-arrow" id="btnNextBird">▶</button>
+      </div>
+      <div class="selector-label">Bird</div>
+      <div class="bird-selector">
+        <button class="btn-arrow" id="btnPrevScenery">◀</button>
+        <canvas id="sceneryPreview" width="160" height="90"></canvas>
+        <button class="btn-arrow" id="btnNextScenery">▶</button>
+      </div>
+      <div class="selector-label">Scenery</div>
+      <div id="selectorHint" class="selector-hint"></div>
+      <div class="coin-display"><canvas class="coin-icon" width="24" height="24"></canvas> <span id="startCoins">0</span></div>
+      <div id="authBox" style="display:none">
+        <div id="syncStatus" class="sync-status">☁ offline</div>
+        <form id="authForm" autocomplete="on">
+          <input type="email" id="authEmail" placeholder="Email" required>
+          <input type="password" id="authPassword" placeholder="Password" minlength="6" required>
+          <button type="submit" class="btn btn-auth" id="authSubmit">Log in</button>
+        </form>
+        <div id="authError" class="auth-error"></div>
+        <button type="button" class="auth-toggle" id="authToggle">New here? Sign up</button>
+        <button type="button" class="btn btn-auth btn-signout" id="btnSignOut" style="display:none">Sign out</button>
+      </div>
+      <button class="btn btn-play" id="btnPlay">Play</button>
+      <button class="btn btn-shop" id="btnShopFromStart">Shop</button>
+      <button class="btn btn-scores" id="btnScores">Best Scores</button>
+      <div id="leaderboard" class="lb-backdrop" style="display:none">
+        <div class="lb-modal">
+          <div class="lb-title">Top 10 Players</div>
+          <div id="lbBody" class="lb-body">Loading…</div>
+          <button class="btn btn-back" id="btnScoresClose">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shop Screen -->
+  <div id="shopScreen" class="screen" style="display:none">
+    <div class="screen-content shop-content">
+      <div class="shop-header">
+        <button class="btn btn-back" id="btnBack">← Back</button>
+        <div class="coin-display"><canvas class="coin-icon" width="24" height="24"></canvas> <span id="shopCoins">0</span></div>
+      </div>
+      <h2 class="shop-title">Bird Shop</h2>
+      <div class="shop-grid" id="shopGrid"></div>
+      <h3 class="shop-section-title">Scenery</h3>
+      <div class="shop-grid" id="sceneryGrid"></div>
+    </div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div id="gameOverScreen" class="screen" style="display:none">
+    <div class="screen-content">
+      <h2 class="gameover-title">Game Over</h2>
+      <div class="score-box">
+        <div class="score-row"><span>Score</span><span id="finalScore">0</span></div>
+        <div class="score-row"><span>Coins earned</span><span id="coinsEarned">0</span></div>
+        <div class="score-row"><span>Total coins</span><span id="totalCoins">0</span></div>
+      </div>
+      <button class="btn btn-play" id="btnRestart">Restart</button>
+      <button class="btn btn-shop" id="btnShopFromOver">Shop</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
