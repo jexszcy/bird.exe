@@ -230,12 +230,11 @@
   var uid = function () { return crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2); };
   function purchase(itemType, itemId) { enqueue({ type: 'purchase', key: uid(), itemType: itemType, itemId: itemId }); }
 
-  // Top 10 by best_score. profiles has no email column, so display is
-  // rank + score + a "You" marker; the game.js caller resolves names.
+  // Top 10 by best_score with display_name
   async function fetchLeaderboard() {
     if (!client) throw new Error('offline');
     var sess = (await client.auth.getSession()).data.session;
-    var rows = await client.from('profiles').select('user_id,best_score').order('best_score', { ascending: false }).limit(10);
+    var rows = await client.from('profiles').select('user_id,best_score,display_name').order('best_score', { ascending: false }).limit(10);
     if (rows.error) throw rows.error;
     return {
       list: rows.data || [],

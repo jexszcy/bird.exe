@@ -781,11 +781,12 @@ const ctx = canvas.getContext('2d');
 function resize() {
   const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
   const vw = window.visualViewport ? window.visualViewport.width : window.innerWidth;
-  canvas.width = vw * devicePixelRatio;
-  canvas.height = vh * devicePixelRatio;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = vw * dpr;
+  canvas.height = vh * dpr;
   canvas.style.width = vw + 'px';
   canvas.style.height = vh + 'px';
-  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 window.addEventListener('resize', resize);
 if (window.visualViewport) {
@@ -869,14 +870,14 @@ function updatePipes(dt) {
 }
 
 // ── Enemy Birds ──────────────────────────────────────────────
-// Hostile birds: spawn once score >= 15, up to floor(score/15) alive
-// (max 4). They fly through pipes (view-only) and kill on touch.
-// Types unlock by score; each has its own sprite, size, speed and radius.
+// Hostile birds: spawn once score >= 5, up to 3 alive until 30 then
+// gradually up to 8 (max). They fly through pipes (view-only) and kill on touch.
+// Types unlock by score 5/10/20/30; each has its own sprite, size, speed and radius.
 const ENEMY_TYPES = {
-  red:    { sprite: 'enemyRed',    size: 34, speed: 1,   radius: 12, minScore: 15, weight: 40 },
-  yellow: { sprite: 'enemyYellow', size: 28, speed: 2.2, radius: 10, minScore: 25, weight: 30 },
-  black:  { sprite: 'enemyBlack',  size: 34, speed: 1,   radius: 12, minScore: 35, weight: 20 },
-  bigred: { sprite: 'enemyBigRed', size: 85, speed: 1,   radius: 30, minScore: 50, weight: 10 },
+  red:    { sprite: 'enemyRed',    size: 34, speed: 1.5, radius: 12, minScore: 5, weight: 40 },
+  yellow: { sprite: 'enemyYellow', size: 28, speed: 3.3, radius: 10, minScore: 10, weight: 30 },
+  black:  { sprite: 'enemyBlack',  size: 34, speed: 1.5, radius: 12, minScore: 20, weight: 20 },
+  bigred: { sprite: 'enemyBigRed', size: 85, speed: 1.5, radius: 30, minScore: 30, weight: 10 },
 };
 
 let enemies = [];
@@ -902,40 +903,59 @@ function spawnEnemy() {
     if (roll <= 0) { type = t; break; }
   }
   const def = ENEMY_TYPES[type];
+  const spawnY = H() * (0.4 + Math.random() * 0.25);
   enemies.push({
     type,
     x: W() + 30,
-    y: H() * (0.3 + Math.random() * 0.4),
+    y: spawnY,
+    vy: (Math.random() - 0.5) * 80,
     phase: Math.random() * Math.PI * 2,
     size: def.size,
     speed: def.speed,
     radius: def.radius,
-    fuse: type === 'black' ? 2.5 + Math.random() : 0, // black: detonate 2.5-3.5s after spawn
   });
 }
 
 function updateEnemies(dt) {
-  const maxAlive = Math.min(6, Math.floor(score / 15));
-  if (score >= 15 && enemies.length < maxAlive) {
+  // gate starts at 5, gradually increases; cap 8 at high scores
+  let maxAlive;
+  if (score < 31) {
+    maxAlive = Math.min(3, Math.max(1, Math.floor(score / 10) + 1));
+  } else {
+    maxAlive = Math.min(8, 3 + Math.floor((score - 31) / 7) + 1);
+  }
+  if (score >= 5 && enemies.length < maxAlive) {
     enemyTimer -= dt;
     if (enemyTimer <= 0) {
       spawnEnemy();
       const baseTimer = 2.5 + Math.random() * 2;
-      const accel = Math.max(0.5, 1 - score * 0.005);
+      const accel = Math.max(0.4, 1 - score * 0.006);
       enemyTimer = baseTimer * accel;
     }
-  } else if (score >= 15) {
+  } else if (score >= 5) {
     // cap full: keep timer fresh so it doesn't resume stale when a slot frees
     const baseTimer = 2.5 + Math.random() * 2;
-    const accel = Math.max(0.5, 1 - score * 0.005);
+    const accel = Math.max(0.4, 1 - score * 0.006);
     enemyTimer = baseTimer * accel;
   }
   for (const e of enemies) {
-    e.x -= (PIPE_SPEED * 60 * speedMult() * 0.9 + 30) * e.speed * dt;
-    e.y += Math.sin(gameTime * 2.5 + e.phase) * 45 * dt;
+    const baseSpeed = (PIPE_SPEED * 60 * speedMult() * 0.9 + 30) * e.speed;
+    e.x -= baseSpeed * dt;
+    e.vy += (Math.random() - 0.5) * 80 * dt;
+    // bias to middle: pull vy toward center
+    const midY = H() * 0.5;
+    e.vy += (midY - e.y) * 0.4 * dt; // spring toward middle, weak enough to still feel random
+    e.vy = Math.max(-120, Math.min(120, e.vy));
+    e.y += e.vy * dt;
+    if (e.y < 20) { e.y = 20; e.vy = Math.abs(e.vy); }
+    if (e.y > H() - 70) { e.y = H() - 70; e.vy = -Math.abs(e.vy); }
     if (e.type === 'black') {
-      e.fuse -= dt;
-      if (e.fuse <= 0) {
+      const bx = 80 + BIRD_W / 2;
+      const by = birdY + BIRD_H / 2;
+      const dx = e.x - bx;
+      const dy = e.y - by;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 90 || (Math.abs(dy) < 40 && Math.abs(dx) < 100)) {
         explosions.push({ x: e.x, y: e.y, t: 0, maxR: 45 });
         e.dead = true;
       }
@@ -1934,7 +1954,7 @@ async function loadLeaderboard() {
       rank.textContent = '#' + (i + 1);
       const name = document.createElement('span');
       name.className = 'lb-name';
-      name.textContent = r.user_id === res.currentUserId ? 'You' : 'Player ' + (i + 1);
+      name.textContent = r.user_id === res.currentUserId ? 'You' : (r.display_name || 'Player ' + (i + 1));
       const score = document.createElement('span');
       score.className = 'lb-score';
       score.textContent = r.best_score;
