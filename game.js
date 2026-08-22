@@ -770,7 +770,7 @@ let state = 'menu'; // menu | playing | gameover | shop
 let score = 0;
 let runCoins = 0;
 let runCoinPickups = 0;
-const COIN_VALUE = 5;
+const COIN_VALUE = 1;
 let bestScore = storage.best();
 let totalCoins = storage.coins();
 
